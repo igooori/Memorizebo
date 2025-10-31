@@ -75,11 +75,13 @@ async def clear(message:Message):
     id_use = message.from_user.id
     engine = create_engine('sqlite:///memory.db')
     with Session(bind=engine) as db:
-        prove_id = db.query(Memori).filter(Memori.user_id == id_use).all
+        prove_id = db.query(Memori).filter(Memori.user_id == id_use).all()
         if not prove_id:
             await message.answer('❌ у тебя нет файлов в архиве')
-        else:
-            for file in prove_id:
-                db.delete(file)
-                await message.answer('все файлы удалены')
-            db.commit()
+            return
+        for memories in prove_id:
+            if os.path.exists(memories.file_path):
+                os.remove(memories.file_path)
+            db.delete(memories)
+        db.commit()
+        await message.answer('все файлы удалены')
